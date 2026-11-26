@@ -158,6 +158,26 @@ const sparkScene = `
         fill="none" stroke="${BLUE}" stroke-width="2.5"/>
   <circle cx="902" cy="300" r="7" fill="${BG}" stroke="${BLUE}" stroke-width="2.5"/>`;
 
+// Three engines (SEO, AEO, GEO) fed from one reader. Centred on (900, 320) like the
+// other scenes so the article crops stay framed.
+const enginesScene = `
+  <ellipse cx="900" cy="320" rx="210" ry="150" fill="${COOL}" opacity="0.45"/>
+  <circle cx="712" cy="300" r="20" fill="${BLUE}"/>
+  <path d="M 682 352 C 682 326, 742 326, 742 352 Z" fill="${BLUE}"/>
+  ${[
+    { y: 226, label: "SEO", fill: 0.7 },
+    { y: 298, label: "AEO", fill: 0.5 },
+    { y: 370, label: "GEO", fill: 0.85 }
+  ]
+    .map(
+      ({ y, label, fill }) => `
+    <path d="M 746 320 C 782 320, 782 ${y + 23}, 818 ${y + 23}" fill="none" stroke="${BLUE}" stroke-width="2.5"/>
+    <rect x="818" y="${y}" width="270" height="46" rx="10" fill="${CARD}" stroke="${EDGE}" stroke-width="1.5"/>
+    <text x="838" y="${y + 30}" fill="${INK}" font-family="${FONT}" font-size="20" font-weight="800" letter-spacing="1">${label}</text>
+    ${bar(902, y + 21, 166, fill)}`
+    )
+    .join("")}`;
+
 const cards = [
   {
     slug: "mental-offloading",
@@ -190,6 +210,15 @@ const cards = [
     size: 60,
     gap: 74,
     scene: sparkScene
+  },
+  {
+    slug: "seo-aeo-geo-for-your-icp",
+    file: "seo-aeo-geo-for-your-icp.png",
+    eyebrow: "SEO · AEO · GEO",
+    lines: ["One page,", "three engines,", "written for", "your ICP."],
+    size: 56,
+    gap: 66,
+    scene: enginesScene
   }
 ];
 
