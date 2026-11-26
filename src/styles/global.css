@@ -131,6 +131,38 @@ select {
   color: var(--text);
 }
 
+/* Tailwind's preflight zeroes block margins, which ran paragraphs together in posts. */
+.prose-custom :where(p, ul, ol, blockquote, pre, table) {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.prose-custom :where(li + li) {
+  margin-top: 0.35rem;
+}
+
+/* Comparison tables: scroll sideways on narrow screens instead of squashing cells. */
+.prose-custom :where(table) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.prose-custom :where(th, td) {
+  min-width: 8rem;
+  border-bottom: 1px solid var(--border);
+  padding: 0.55rem 0.75rem 0.55rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose-custom :where(th) {
+  font-weight: 600;
+}
+
 .prose-custom :where(a) {
   color: var(--accent);
   text-decoration: underline;
