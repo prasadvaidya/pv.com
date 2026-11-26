@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "./BaseLayout.astro";
-import { absoluteUrl, site } from "../utils/site";
+import { personReference } from "../utils/seo";
+import { absoluteUrl, formatDate, site } from "../utils/site";
 
 interface Props {
   title: string;
@@ -18,6 +19,7 @@ interface Props {
   image?: string;
   imageAlt?: string;
   articleImages?: string[];
+  faqs?: { question: string; answer: string }[];
 }
 
 const {
@@ -35,7 +37,8 @@ const {
   ctaHref,
   image = "/og-default.png",
   imageAlt,
-  articleImages = []
+  articleImages = [],
+  faqs = []
 } = Astro.props;
 // The widest crop doubles as the on-page lead image, so the images referenced by
 // BlogPosting.image are actually visible to readers rather than markup-only.
@@ -64,12 +67,40 @@ const blogPostingStructuredData = {
   audience: audience ? { "@type": "Audience", audienceType: audience } : undefined,
   about: problem,
   inLanguage: "en",
+  // Named author for E-E-A-T. The @id matches the Person node emitted on other pages,
+  // so search engines can join this post to the same author entity.
+  author: {
+    ...personReference(),
+    "@type": "Person",
+    name: site.author,
+    url: absoluteUrl("/about/"),
+    sameAs: Object.values(site.socials)
+  },
   isPartOf: {
     "@type": "Blog",
     name: `${site.name} Writing`,
     url: absoluteUrl("/writing/")
   }
 };
+const faqStructuredData =
+  faqs.length > 0
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "@id": `${canonicalUrl}#faq`,
+        mainEntity: faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.question,
+          acceptedAnswer: { "@type": "Answer", text: faq.answer }
+        }))
+      }
+    : undefined;
+const breadcrumb = [
+  { name: "Writing", item: absoluteUrl("/writing/") },
+  { name: title, item: canonicalUrl }
+];
+const showUpdated =
+  updatedDate && pubDate && formatDate(updatedDate) !== formatDate(pubDate);
 ---
 
 <BaseLayout
@@ -84,13 +115,29 @@ const blogPostingStructuredData = {
   articleSection={category}
   articleTags={tags}
   includeStructuredAuthor={false}
-  structuredData={blogPostingStructuredData}
+  breadcrumb={breadcrumb}
+  structuredData={faqStructuredData ? [blogPostingStructuredData, faqStructuredData] : blogPostingStructuredData}
 >
   <article class="container page">
     <p class="back">
       <a class="link" href="/writing/">← Writing</a>
     </p>
     <h1>{title}</h1>
+    <p class="byline">
+      By <a class="link" href="/about/" rel="author">{site.author}</a>
+      {pubDate && (
+        <>
+          {" · "}
+          <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+        </>
+      )}
+      {showUpdated && updatedDate && (
+        <>
+          {" · Updated "}
+          <time datetime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time>
+        </>
+      )}
+    </p>
     {metaParts.length > 0 && <p class="meta">{metaParts.join(" · ")}</p>}
     {
       leadImage && (
@@ -108,6 +155,19 @@ const blogPostingStructuredData = {
     <div class="prose-custom body">
       <slot />
     </div>
+    {
+      faqs.length > 0 && (
+        <section class="prose-custom faq" aria-labelledby="faq-heading">
+          <h2 id="faq-heading">Frequently asked questions</h2>
+          {faqs.map((faq) => (
+            <>
+              <h3>{faq.question}</h3>
+              <p>{faq.answer}</p>
+            </>
+          ))}
+        </section>
+      )
+    }
     {
       hasValidationCta && (
         <p class="article-cta">
@@ -142,6 +202,23 @@ const blogPostingStructuredData = {
     margin: 0;
     font-size: 1.4rem;
     font-weight: 600;
+  }
+
+  .byline {
+    margin: 0.7rem 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .byline + .meta {
+    margin-top: 0.2rem;
+  }
+
+  .faq {
+    max-width: 38rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
   }
 
   .meta {
